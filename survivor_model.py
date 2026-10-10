@@ -11,13 +11,13 @@ from scipy.stats import norm
 SCHEDULE_FILE = '2026_gamedata.csv'
 
 # Current week number (1–18)
-WEEK_NUM = 2
+WEEK_NUM = 5
 
 # Stacking threshold: win probability below which "double-dipping" (stacking) is allowed
 # Set to None to strictly enforce different teams for each entry (no stacking).
 # 0.65 yielded best results for 2025 dataset (Only consider stacking if odds to win are lower than 65%)
-STACKING_THRESHOLD = 0.65  
-MIN_STACK_PROB = 0.70 # minimum win prob the stacked team must have to be worth doubling up on
+STACKING_THRESHOLD = 0.60  
+MIN_STACK_PROB = 0.66 # minimum win prob the stacked team must have to be worth doubling up on
 MAX_STACK = 2  # Maximum number of entries that can "stack" on the same team in a given week
 
 # Early week weighting for survival strategy
@@ -29,22 +29,18 @@ EARLY_WEEK_WEIGHT = 2.0
 
 # Survivor pool entries configuration
 ENTRIES = [
-  ## {'id': 1, 'used_teams': ['Los Angeles Chargers']},  # DJMJ-1 (Lost Week 1)
-  ## {'id': 2, 'used_teams': ['Los Angeles Chargers']},  # DJMJ-2 (Lost Week 1)
-  {'id': 3, 'used_teams': ['Jacksonville Jaguars']},  # DJMJ-3
-  {'id': 4, 'used_teams': ['Jacksonville Jaguars']},  # DJMJ-4
-  {'id': 5, 'used_teams': ['Detroit Lions']},         # DJMJ-5
-  {'id': 6, 'used_teams': ['Philadelphia Eagles']},   # DJMJ-6
-  {'id': 7, 'used_teams': ['Cincinnati Bengals']},    # DJMJ-7
-  {'id': 8, 'used_teams': ['Pittsburgh Steelers']},   # DJMJ-8
-  {'id': 9, 'used_teams': ['Chicago Bears']},         # DJMJ-9
-  {'id': 10, 'used_teams': ['Las Vegas Raiders']},    # DJMJ-10
-  # {'id': 11, 'used_teams': ['Jacksonville Jaguars']}, # Goetz-1
-  # {'id': 12, 'used_teams': ['Jacksonville Jaguars']}, # Goetz-2
-  # {'id': 13, 'used_teams': ['Los Angeles Chargers']}, # Goetz-3
-  # {'id': 14, 'used_teams': ['Detroit Lions']},        # Goetz-4
-  # {'id': 15, 'used_teams': ['Philadelphia Eagles']},  # Goetz-5
-  # {'id': 16, 'used_teams': ['Jacksonville Jaguars']}, # Des-1
+  # Dave's Entries
+  {'id': 'Dave-2', 'used_teams': ['Jacksonville Jaguars','San Francisco 49ers','Kansas City Chiefs','Seattle Seahawks']},
+
+  # John's Entries
+  {'id': 'John-1', 'used_teams': ['Chicago Bears','Kansas City Chiefs','Detroit Lions','Baltimore Ravens']},
+  {'id': 'John-3', 'used_teams': ['Pittsburgh Steelers','Philadelphia Eagles','San Francisco 49ers','Seattle Seahawks']},
+  
+  # Goetz's Entries
+  {'id': 'Goetz-5', 'used_teams': ['Philadelphia Eagles','New England Patriots','Kansas City Chiefs','Green Bay Packers']},
+  {'id': 'Goetz-1', 'used_teams': ['Jacksonville Jaguars','Tampa Bay Buccaneers','Buffalo Bills','Baltimore Ravens']},
+  {'id': 'Goetz-3', 'used_teams': ['Jacksonville Jaguars','Chicago Bears','San Francisco 49ers','Kansas City Chiefs']},
+  {'id': 'Goetz-4', 'used_teams': ['Los Angeles Chargers','San Francisco 49ers','Detroit Lions','Minnesota Vikings']}
 ]
 
 # Current ESPN Power Ratings for each team (used to adjust win probabilities)
@@ -958,7 +954,7 @@ def calculate_win_probabilities(schedule, week_num):
   for game in schedule:
 
     # Skip games that have already been played
-    if game['week'] >= week_num:
+    if game['week'] >= week_num and game['winner'] is None:
 
       # Project win probability for this game
       projected_game = game.copy()
@@ -1231,13 +1227,6 @@ def scrape_espn_odds(schedule):
 schedule = process_schedule(SCHEDULE_FILE)
 schedule_with_projections = calculate_win_probabilities(schedule, WEEK_NUM)
 
-# Print the odds to percents table for reference
-#print_odds_to_percents_table()
-
-# Calculate the optimal picks for each entry based on the current schedule and projections
-optimal_picks_results = calculate_optimal_picks(ENTRIES, schedule_with_projections, WEEK_NUM, stacking_threshold=STACKING_THRESHOLD, early_week_weight=EARLY_WEEK_WEIGHT, max_stack=MAX_STACK, min_stack_prob=MIN_STACK_PROB)
-print_optimal_picks(optimal_picks_results)
-
 # Monte Carlo analysis for stacking thresholds
 # stacking_thresholds_to_test = [0.60, 0.65, 0.70, 0.75, 0.80]
 # monte_carlo_stacking_results = monte_carlo_stacking_analysis(schedule_with_projections, stacking_thresholds_to_test, n_entries=len(ENTRIES), n_simulations=100_000, early_week_weight=EARLY_WEEK_WEIGHT)
@@ -1260,4 +1249,11 @@ print_optimal_picks(optimal_picks_results)
 #     print()
 #
 # Schedule Scrape & Print Discrepancies
-#scraped_schedule = scrape_espn_odds(schedule)
+# scraped_schedule = scrape_espn_odds(schedule)
+
+# Print the odds to percents table for reference
+# print_odds_to_percents_table()
+
+# Calculate the optimal picks for each entry based on the current schedule and projections
+optimal_picks_results = calculate_optimal_picks(ENTRIES, schedule_with_projections, WEEK_NUM, stacking_threshold=STACKING_THRESHOLD, early_week_weight=EARLY_WEEK_WEIGHT, max_stack=MAX_STACK, min_stack_prob=MIN_STACK_PROB)
+print_optimal_picks(optimal_picks_results)
